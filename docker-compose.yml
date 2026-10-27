@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: zomato-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-zomato}
+      POSTGRES_USER: ${POSTGRES_USER:-zomato}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  airflow-init:
+    build: ./airflow
+    depends_on:
+      postgres: {condition: service_healthy}
+    environment: &airflow_env
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-zomato}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-zomato}
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW_SECRET_KEY:?Set AIRFLOW_SECRET_KEY in .env}
+      ZOMATO_DB_HOST: postgres
+      ZOMATO_DB_PORT: "5432"
+      ZOMATO_DB_NAME: ${POSTGRES_DB:-zomato}
+      ZOMATO_DB_USER: ${POSTGRES_USER:-zomato}
+      ZOMATO_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DBT_PROFILES_DIR: /opt/dbt
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./ingestion:/opt/ingestion
+      - ./data:/opt/data
+      - ./dbt_project:/opt/dbt/project
+      - ./dbt_project/profiles.yml:/opt/dbt/profiles.yml:ro
+    command: bash -c "airflow db migrate && (airflow users create --username ${AIRFLOW_ADMIN_USER:-admin} --password ${AIRFLOW_ADMIN_PASSWORD} --firstname Local --lastname Admin --role Admin --email admin@example.local || true)"
+    restart: "no"
+
+  airflow:
+    build: ./airflow
+    depends_on:
+      postgres: {condition: service_healthy}
+      airflow-init: {condition: service_completed_successfully}
+    environment: *airflow_env
+    ports:
+      - "${AIRFLOW_PORT:-8080}:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./ingestion:/opt/ingestion
+      - ./data:/opt/data
+      - ./dbt_project:/opt/dbt/project
+      - ./dbt_project/profiles.yml:/opt/dbt/profiles.yml:ro
+    command: bash -c "airflow scheduler & exec airflow webserver"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
