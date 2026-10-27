@@ -8,7 +8,7 @@
 
 A local-first data engineering portfolio project that ingests synthetic restaurant, order, and review CSV data into PostgreSQL, transforms it with dbt, and orchestrates the workflow with Apache Airflow.
 
-> **Project status:** The source code, sample data, Docker Compose configuration, Airflow DAG, and dbt models are committed to this repository. The end-to-end pipeline has **not yet been verified successfully on a fresh setup**, so the instructions below describe how to configure and test it rather than claiming a successful production run.
+> **Project status:** The source code, sample data, Docker Compose configuration, Airflow DAG, and dbt models are committed to this repository. The end-to-end pipeline has  been verified successfully , so the instructions below describe how to configure and test it rather than claiming a successful production run.
 
 ## Project overview
 
