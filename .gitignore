@@ -1,13 +1,43 @@
+# Python
 __pycache__/
 *.py[cod]
+*.pyd
+.Python
 .venv/
 venv/
+env/
+ENV/
+
+# Secrets and local configuration
 .env
 .env.*
 !.env.example
-.DS_Store
+
+# Logs and local databases
 logs/
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# Build and test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# dbt generated artifacts
 target/
 dbt_project/target/
 dbt_project/logs/
 dbt_project/dbt_packages/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
