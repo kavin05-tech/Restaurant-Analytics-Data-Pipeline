@@ -1,94 +1,98 @@
 # Restaurant Analytics Data Pipeline
 
-An end-to-end, local-first data engineering project that models restaurant operations data and transforms it into analytics-ready performance metrics.
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![dbt](https://img.shields.io/badge/Transformations-dbt-FF694B?logo=dbt&logoColor=white)](https://www.getdbt.com/)
+[![Apache Airflow](https://img.shields.io/badge/Orchestration-Airflow-017CEE?logo=apacheairflow&logoColor=white)](https://airflow.apache.org/)
+[![Docker Compose](https://img.shields.io/badge/Local%20environment-Docker%20Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 
-> **Project status:** The published `main` branch currently contains the project documentation and Compose configuration, but not all source directories referenced by that configuration. A fresh clone is **not yet runnable** until those implementation files are committed. The architecture and workflow below describe the intended pipeline; verify each step after publishing the source files.
+A local-first portfolio project exploring how restaurant operations data can be ingested, stored, transformed, tested, and prepared for analytics using a modern data engineering stack.
 
-## Overview
+> **Repository status — implementation incomplete:** The current `main` branch includes project documentation and Docker Compose configuration, but the source directories referenced by the configuration are not yet committed. A fresh clone is therefore **not runnable yet**. This README distinguishes the intended design from verified repository contents.
 
-Restaurant data is useful only when it can be loaded consistently, validated, transformed, and trusted. This project is designed to demonstrate those core data engineering practices using an approachable local stack—without requiring paid cloud services.
+## Project at a glance
 
-### Intended workflow
+- **Use case:** turn restaurant, order, and review records into analytics-ready datasets.
+- **Core stack:** Python, PostgreSQL, dbt, Apache Airflow, and Docker Compose.
+- **Development approach:** local-first and cloud-cost-free; synthetic sample data is planned.
+- **Focus areas:** ingestion validation, reliable database writes, dimensional modeling, orchestration, and data quality.
+
+## Intended architecture
 
 ```mermaid
-flowchart TD
-    A[CSV source files\nrestaurants, orders, reviews] --> B[Python ingestion]
-    B --> C[(PostgreSQL\nraw schema)]
-    C --> D[dbt staging models]
-    D --> E[Analytics models\ndimensions and facts]
+flowchart LR
+    A[CSV files<br/>restaurants · orders · reviews] --> B[Python ingestion]
+    B --> C[(PostgreSQL<br/>raw tables)]
+    C --> D[dbt staging]
+    D --> E[Analytics models<br/>dimensions and facts]
     E --> F[Restaurant performance KPIs]
-    G[Apache Airflow] --> B
-    G --> H[dbt build and tests]
+    G[Apache Airflow] -. orchestrates .-> B
+    G -. runs .-> H[dbt build and tests]
     H --> D
 ```
 
-## Technology stack
+The diagram describes the **planned workflow**, not a claim that the complete pipeline currently runs from a fresh clone.
 
-| Technology | Role |
+## Technology choices
+
+| Component | Responsibility |
 |---|---|
-| Python | CSV ingestion, parsing, validation, and error handling |
-| PostgreSQL | Relational storage for raw and analytics data |
-| dbt | SQL transformations, data modeling, and data tests |
-| Apache Airflow | Workflow scheduling, task dependencies, retries, and monitoring |
-| Docker Compose | Repeatable local development environment |
+| Python | Read source CSVs, validate fields, parse values, and load records |
+| PostgreSQL | Store source-shaped records and relational analytics data |
+| dbt | Express transformations as version-controlled SQL models and run data tests |
+| Apache Airflow | Define task dependencies, retries, scheduling, and run visibility |
+| Docker Compose | Run the local services with repeatable configuration |
 
-## Data model
+## Planned data layers
 
-The planned pipeline separates source-shaped data from analytics models:
+1. **Raw:** source-shaped restaurant, order, and review records.
+2. **Staging:** standardized names, types, and values.
+3. **Dimensional models:** a restaurant dimension and an order fact table.
+4. **Analytics mart:** restaurant-level metrics such as order volume, delivered revenue, and ratings.
 
-- **Raw layer:** preserves source records and identifiers in PostgreSQL.
-- **Staging layer:** standardizes names, data types, and status values through dbt.
-- **Restaurant dimension:** provides a consistent restaurant-level entity.
-- **Order fact:** represents order-level activity for aggregation and analysis.
-- **Performance mart:** combines restaurant and order information into metrics such as order volume, delivered revenue, and ratings.
+The sample-data plan uses synthetic records only. It is intended for development and does not represent real customer or restaurant business data.
 
-The current sample-data design uses synthetic records for restaurants, orders, and reviews. Synthetic data is intended for reproducible development and does not represent real customer or business data.
+## Data engineering practices targeted
 
-## Data quality and reliability goals
+The implementation is intended to demonstrate the following practices; verify them against the source code once it is committed:
 
-The implementation is designed to demonstrate:
-
-- Source-header and value validation before loading.
-- Parameterized database operations and transaction rollback on failure.
-- Stable identifiers and upsert-based reruns to avoid duplicate records.
-- dbt tests for key uniqueness, required values, and relationships.
-- Airflow task dependencies, retries, and observable logs.
-
-These are implementation goals described for the project; validate them against the committed source code before treating them as verified behavior.
+- Validate source headers and values before loading.
+- Use parameterized SQL and transactions, with rollback on failed loads.
+- Use stable identifiers and upserts to support safe reruns.
+- Test model uniqueness, required fields, and relationships in dbt.
+- Orchestrate ingestion and transformations with explicit Airflow dependencies and retries.
+- Keep credentials and generated artifacts out of version control.
 
 ## Repository layout
 
-The following is the **intended** layout referenced by the Compose configuration. Not all of these paths are currently present on the published `main` branch.
+The following is the **target layout**. Some directories shown here are referenced by `docker-compose.yml` but are currently absent from the published branch.
 
 ```text
 .
 ├── airflow/
 │   ├── Dockerfile
 │   └── dags/
-├── data/
-│   └── generated CSV fixtures
+├── data/                    # synthetic CSV fixtures
 ├── dbt_project/
 │   ├── models/
 │   └── profiles.yml
-├── ingestion/
-│   └── CSV loading code
-├── .env.example
+├── ingestion/               # Python loader and dependencies
+├── .env.example             # safe configuration template
+├── .gitignore
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
 ```
 
-## Local setup
+## Getting started
 
 ### Prerequisites
 
-- Docker Desktop with Docker Compose v2
 - Git
-- Python 3.12 (for running local data-generation utilities, if included)
+- Docker Desktop with Docker Compose v2
+- Python 3.12, if using local data-generation or ingestion commands
 
-### Configure environment variables
-
-After the missing implementation directories have been committed, clone the repository and open PowerShell in the project directory:
+### 1. Clone and configure
 
 ```powershell
 git clone https://github.com/kavin05-tech/Restaurant-Analytics-Data-Pipeline.git
@@ -96,11 +100,11 @@ Set-Location Restaurant-Analytics-Data-Pipeline
 Copy-Item .env.example .env
 ```
 
-Edit `.env` and replace every placeholder with local values. Never commit `.env` or share its credentials. The committed `.env.example` is for configuration names and safe placeholders only.
+Edit `.env` and replace every placeholder with local-only values. **Never commit `.env` or publish its credentials.** Keep `.env.example` limited to safe placeholder values.
 
-### Validate and start
+### 2. Check the Compose configuration
 
-The following commands depend on the implementation files referenced by `docker-compose.yml` being present:
+After the missing source directories and files have been added:
 
 ```powershell
 docker compose config --quiet
@@ -108,47 +112,45 @@ docker compose up --build -d
 docker compose ps
 ```
 
-Once the Airflow services are available, open [http://localhost:8080](http://localhost:8080), sign in using the local credentials configured in `.env`, and trigger the project DAG after confirming its name in the Airflow UI.
+These commands are documented for the intended setup; the current repository is not yet complete enough for a successful fresh-clone startup.
 
-### Verify analytics
+### 3. Open Airflow and inspect results
 
-After the ingestion and dbt tasks have completed successfully, use PostgreSQL to inspect the raw data and analytics output. The exact schema and model names should match the committed dbt models.
+When the Airflow service is running, open [http://localhost:8080](http://localhost:8080) and sign in with the local credentials configured in `.env`. Confirm the DAG name in the Airflow UI before triggering it.
+
+After ingestion and dbt complete successfully, query PostgreSQL to inspect the raw tables and analytics models. Model names and SQL examples should be documented here once the implementation is committed.
+
+### 4. Stop the services safely
 
 ```powershell
-docker compose exec postgres psql -U zomato -d zomato
+docker compose down
 ```
 
-For a clean shutdown, use `docker compose down`. The named PostgreSQL volume is intended to preserve database state. Avoid `docker compose down -v` unless you intentionally want to remove the database volume.
+The Compose configuration uses a named PostgreSQL volume intended to preserve database state. Avoid `docker compose down -v` unless you intentionally want to delete that volume and its data.
 
-## Example business questions
+## Example analytics questions
 
-The analytics layer is intended to help answer questions such as:
+The planned analytics mart should help answer questions such as:
 
-1. Which restaurants generate the highest delivered revenue?
-2. How does order volume vary by restaurant?
-3. How do customer ratings compare across restaurants?
-4. Which restaurants have many orders but comparatively low ratings?
-
-These questions should be answered from the analytics models, not by manually changing source CSV files.
-
-## Security and reproducibility
-
-- Use synthetic data for local development.
-- Keep `.env`, database passwords, and Airflow secret keys out of version control.
-- Use `.env.example` to document required configuration without publishing real credentials.
-- Keep generated logs, caches, dbt build artifacts, and local virtual environments out of Git.
-- Re-run data-quality tests after changing ingestion or transformation logic.
+- Which restaurants have the highest delivered revenue?
+- How does order volume vary by restaurant?
+- How do customer ratings compare across restaurants?
+- Which restaurants have high order volume but relatively low ratings?
 
 ## Roadmap
 
-- [ ] Commit the missing ingestion, Airflow DAG, and dbt source files so a fresh clone can run.
+- [ ] Commit the ingestion source, Airflow DAG, dbt models, and referenced configuration files.
+- [ ] Make a fresh-clone setup work end to end and document tested commands.
 - [ ] Add automated tests for ingestion validation and transformation logic.
-- [ ] Add a reproducible end-to-end smoke test and document its results.
-- [ ] Capture genuine screenshots of a successful Airflow run and analytics query.
-- [ ] Add a data dictionary and example KPI queries.
+- [ ] Include a data dictionary and representative KPI SQL queries.
+- [ ] Add genuine screenshots or sample query output after a successful local run.
 
-## About
+## Author
 
-Built as a local portfolio project to practice Python, SQL, PostgreSQL, dbt, Airflow, Docker, data modeling, and data quality fundamentals.
+**[kavin05-tech](https://github.com/kavin05-tech)**
 
-**Author:** [kavin05-tech](https://github.com/kavin05-tech)
+Built as a learning and portfolio project focused on Python, SQL, PostgreSQL, dbt, Airflow, Docker, data modeling, and data quality.
+
+---
+
+If you find an issue or have a suggestion, feel free to open a GitHub issue.
