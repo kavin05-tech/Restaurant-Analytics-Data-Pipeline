@@ -1,0 +1,6 @@
+"restaurant_id","name","city","cuisine","rating","average_cost_for_two","online_order"
+"101","Spice Route","Bengaluru","Indian","4.3","450","Yes"
+"102","Namma Dosa","Bengaluru","South Indian","4.1","220","Yes"
+"103","Wok This Way","Mumbai","Chinese","4","500","No"
+"104","The Green Bowl","Delhi","Healthy","4.5","380","Yes"
+"105","Pizza Yard","Mumbai","Italian","3.9","600","Yes"

@@ -1,0 +1,35 @@
+version: 2
+models:
+  - name: stg_restaurants
+    columns:
+      - name: restaurant_id
+        tests: [not_null, unique]
+      - name: rating
+        tests: [not_null]
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+  - name: stg_reviews
+    columns:
+      - name: review_id
+        tests: [not_null, unique]
+      - name: rating
+        tests: [not_null]
+  - name: dim_restaurants
+    columns:
+      - name: restaurant_id
+        tests: [not_null, unique]
+  - name: fct_orders
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: restaurant_id
+        tests:
+          - relationships:
+              to: ref('dim_restaurants')
+              field: restaurant_id
+  - name: analytics_restaurant_performance
+    columns:
+      - name: restaurant_id
+        tests: [not_null, unique]
